@@ -7,7 +7,7 @@ import (
 )
 
 func Success(ctx *fiber.Ctx, data interface{}) error {
-
+	// asdasd
 	return ctx.JSON(fiber.Map{
 		"data": data,
 	})

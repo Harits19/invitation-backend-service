@@ -16,4 +16,5 @@ func main() {
 	})
 
 	app.Listen(":8080")
+	defer app.Shutdown()
 }

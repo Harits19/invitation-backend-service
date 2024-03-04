@@ -22,11 +22,12 @@ func collection(ctx *fiber.Ctx) *mongo.Collection {
 
 func getInvitationDetail(ctx *fiber.Ctx) error {
 	name := ctx.Params("name")
-	var result model.Invitation
+	var result *model.Invitation
 	err := collection(ctx).FindOne(context.Background(), bson.M{"name": name}).Decode(&result)
 	if err != nil {
-		return err
+		return response.Error(ctx, err)
 	}
+
 	return response.Success(ctx, result)
 
 }

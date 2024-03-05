@@ -8,7 +8,8 @@ import (
 
 func Success(ctx *fiber.Ctx, data interface{}) error {
 	return ctx.JSON(fiber.Map{
-		"data": data,
+		"message": "success",
+		"data":    data,
 	})
 }
 

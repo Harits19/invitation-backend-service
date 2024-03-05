@@ -9,9 +9,13 @@ import (
 
 func main() {
 	app := fiber.New()
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
+	}))
 
-	invitation.Route(app)
+	invitationRoute := app.Group("/invitation")
+
+	invitation.Route(invitationRoute)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("test")

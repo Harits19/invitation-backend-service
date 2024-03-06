@@ -53,13 +53,23 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 
 	for key := range form.File {
 
-		path, err := saveToLocal(ctx, invitation, form, key)
-		if err != nil {
-			return response.Error(ctx, err)
+		if key == "photo.gallery" {
+			for _, file := range form.File[key] {
+				fmt.Println("photo gallery file", file.Filename)
+
+			}
 		}
 
-		key = util.TitleCase(key)
-		setValue(key, invitation, path)
+		paths, err := saveToLocal(ctx, invitation, form, key)
+
+		for _, path := range paths {
+			if err != nil {
+				return response.Error(ctx, err)
+			}
+
+			key = util.TitleCase(key)
+			setValue(key, invitation, path)
+		}
 
 	}
 	fmt.Println("set string", *invitation.Music)
@@ -85,39 +95,46 @@ func setValue(key string, source interface{}, replace string) {
 			if realResult.Kind() == reflect.String {
 				realResult.SetString(replace)
 			}
+		} else if result.Kind() == reflect.Array {
+			// result.SetIterKey()
 		}
 
 	}
 }
 
-func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) (string, error) {
-	file := form.File[prefix][0]
+func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) ([]string, error) {
+	filePathList := []string{}
+	for index, file := range form.File[prefix] {
 
-	folderPath := fmt.Sprintf("./assets/%s", *invitation.Id)
+		folderPath := fmt.Sprintf("./assets/%s", *invitation.Id)
+		newPrefix := fmt.Sprintf("%s%d", prefix, index)
+		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+				return filePathList, err
+			}
+		} else {
+			err := removeCurrentFile(folderPath, newPrefix)
+			if err != nil {
+				return filePathList, err
+			}
+		}
 
-	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
-			return "", err
+		fileName := strings.Split(file.Filename, ".")
+		fileType := fileName[len(fileName)-1]
+
+		id := time.Now().Unix()
+
+		filePath := fmt.Sprintf("%s/%s_%d.%s", folderPath, newPrefix, id, fileType)
+
+		if err := ctx.SaveFile(file, filePath); err != nil {
+			return filePathList, err
 		}
-	} else {
-		err := removeCurrentFile(folderPath, prefix)
-		if err != nil {
-			return "", err
-		}
+		filePath = filePath[1:]
+		filePathList = append(filePathList, filePath)
 	}
 
-	fileName := strings.Split(file.Filename, ".")
-	fileType := fileName[len(fileName)-1]
+	return filePathList, nil
 
-	id := time.Now().Unix()
-
-	filePath := fmt.Sprintf("%s/%s_%d.%s", folderPath, prefix, id, fileType)
-
-	if err := ctx.SaveFile(file, filePath); err != nil {
-		return "", err
-	}
-	filePath = filePath[1:]
-	return filePath, nil
 }
 
 func removeCurrentFile(folderPath string, prefix string) error {

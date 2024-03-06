@@ -15,6 +15,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
 	}))
+	app.Static("/assets", "./assets")
 
 	err := mongodb.InitConnection()
 	if err != nil {

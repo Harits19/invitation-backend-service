@@ -21,9 +21,9 @@ type Photo struct {
 		Bottom *string `json:"bottom"`
 	} `json:"side" bson:"side"`
 	Background *string   `json:"background"`
-	Slide      []string `json:"slide"`
+	Slide      *[]string `json:"slide"`
 	Divider    *string   `json:"divider"`
-	Gallery    []string `json:"gallery"`
+	Gallery    *[]string `json:"gallery"`
 }
 
 type BrideGroom struct {

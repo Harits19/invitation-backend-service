@@ -53,13 +53,6 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 
 	for key := range form.File {
 
-		if key == "photo.gallery" {
-			for _, file := range form.File[key] {
-				fmt.Println("photo gallery file", file.Filename)
-
-			}
-		}
-
 		paths, err := saveToLocal(ctx, invitation, form, key)
 
 		for _, path := range paths {
@@ -94,9 +87,11 @@ func setValue(key string, source interface{}, replace string) {
 			realResult := result.Elem()
 			if realResult.Kind() == reflect.String {
 				realResult.SetString(replace)
+			} else if realResult.Kind() == reflect.Slice {
+				newValue := reflect.Append(realResult, reflect.ValueOf(replace))
+				realResult.Set(newValue)
 			}
-		} else if result.Kind() == reflect.Array {
-			// result.SetIterKey()
+
 		}
 
 	}

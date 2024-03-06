@@ -50,13 +50,13 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 	}
 
 	for key := range form.File {
-		if err := saveToLocal(ctx, invitation, form, key); err != nil {
+		path, err := saveToLocal(ctx, invitation, form, key)
+		if err != nil {
 			return response.Error(ctx, err)
 		}
+		setValue(key, invitation, path)
 
 	}
-
-	setValue("Music", invitation, "aaaa")
 
 	fmt.Println("set string", *invitation.Music)
 
@@ -88,19 +88,19 @@ func setValue(key string, source interface{}, replace string) {
 	}
 }
 
-func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) error {
+func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) (string, error) {
 	file := form.File[prefix][0]
 
 	folderPath := fmt.Sprintf("./assets/%s", *invitation.Id)
 
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		err := removeCurrentFile(folderPath, prefix)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -110,9 +110,9 @@ func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Fo
 	id := time.Now().Unix()
 
 	if err := ctx.SaveFile(file, fmt.Sprintf("%s/%s_%d.%s", folderPath, prefix, id, fileType)); err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return folderPath, nil
 }
 
 func removeCurrentFile(folderPath string, prefix string) error {

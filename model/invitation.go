@@ -3,10 +3,10 @@ package model
 import "time"
 
 type Invitation struct {
-	Id      string     `json:"id" bson:"_id"`
+	Id      *string    `json:"id,omitempty" bson:"_id,omitempty"`
 	Name    string     `json:"name"`
-	Music   string     `json:"music"`
-	Initial string     `json:"initial"`
+	Music   *string     `json:"music"`
+	Initial *string    `json:"initial"`
 	Date    time.Time  `json:"date"`
 	Groom   BrideGroom `json:"groom"`
 	Bride   BrideGroom `json:"bride"`
@@ -27,12 +27,12 @@ type Photo struct {
 }
 
 type BrideGroom struct {
-	Name       string `json:"name"`
-	FatherName string `json:"father_name" bson:"father_name"`
-	MotherName string `json:"mother_name" bson:"mother_name"`
-	Address    string `json:"address"`
-	Instagram  string `json:"instagram"`
-	Photo      string `json:"photo"`
+	Name       *string `json:"name"`
+	FatherName string  `json:"father_name" bson:"father_name"`
+	MotherName string  `json:"mother_name" bson:"mother_name"`
+	Address    string  `json:"address"`
+	Instagram  string  `json:"instagram"`
+	Photo      *string  `json:"photo"`
 }
 
 type Address struct {

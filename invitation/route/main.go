@@ -8,6 +8,7 @@ import (
 	"main/response"
 	"mime/multipart"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -55,13 +56,42 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 
 	}
 
+	setValue("Music", invitation, "aaaa")
+
+	fmt.Println("set string", *invitation.Music)
+
+	if err := repository.UpdateInvitationDetail(invitation); err != nil {
+		return response.Error(ctx, err)
+	}
+
 	return response.Success(ctx, invitation)
+}
+
+func setValue(key string, source interface{}, replace string) {
+
+	reflectKeys := strings.Split(key, ".")
+	result := reflect.ValueOf(source)
+
+	for _, reflectKey := range reflectKeys {
+
+		result = reflect.Indirect(result).FieldByName(reflectKey)
+		fmt.Println("reflectKey", reflectKey, " result ", result.String(), " result.Kind()", result.Kind())
+
+		if result.Kind() == reflect.Ptr {
+			realResult := result.Elem()
+			fmt.Println("real value", realResult.String())
+			if realResult.Kind() == reflect.String {
+				realResult.SetString(replace)
+			}
+		}
+
+	}
 }
 
 func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) error {
 	file := form.File[prefix][0]
 
-	folderPath := fmt.Sprintf("./assets/%s", invitation.Id)
+	folderPath := fmt.Sprintf("./assets/%s", *invitation.Id)
 
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {

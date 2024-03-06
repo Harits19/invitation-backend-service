@@ -21,7 +21,9 @@ func GetInvitationDetailByName(name string) (*model.Invitation, error) {
 	return result, err
 }
 
-// func updateInvitationDetail(ctx *fiber.Ctx) error {
-// 	err := collection(ctx).FindOne(context.Background(), bson.M{"name": name}).Decode(&result)
+func UpdateInvitationDetail(invitation model.Invitation) error {
+	invitation.Id = nil
+	_, err := collection().UpdateOne(context.Background(), bson.M{"name": invitation.Name}, bson.M{"$set": invitation})
 
-// }
+	return err
+}

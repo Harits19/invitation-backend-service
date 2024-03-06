@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"main/model"
-	"main/mongodb"
+	"main/common/model"
+	"main/common/mongodb"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

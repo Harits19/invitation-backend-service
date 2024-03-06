@@ -2,16 +2,19 @@ package main
 
 import (
 	"log"
+	"main/common/constan"
+	"main/common/mongodb"
 	greeting "main/greeting/route"
 	invitation "main/invitation/route"
-	"main/mongodb"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 10 * constan.MBSize,
+	})
 	app.Use(cors.New(cors.Config{
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
 	}))

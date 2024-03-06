@@ -65,25 +65,15 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) error {
 	file := form.File[prefix][0]
 
-	folderPath := fmt.Sprintf("./%s", invitation.Id)
-
-	files, err := os.ReadDir(folderPath)
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-
-		fileName := file.Name()
-
-		if strings.Contains(fileName, prefix) {
-			os.Remove(fmt.Sprintf("%s/%s", folderPath, fileName))
-		}
-
-	}
+	folderPath := fmt.Sprintf("./assets/%s", invitation.Id)
 
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		if err := os.Mkdir(folderPath, os.ModePerm); err != nil {
+		if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+			return err
+		}
+	} else {
+		err := removeCurrentFile(folderPath, prefix)
+		if err != nil {
 			return err
 		}
 	}
@@ -95,6 +85,31 @@ func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Fo
 
 	if err := ctx.SaveFile(file, fmt.Sprintf("%s/%s_%d.%s", folderPath, prefix, id, fileType)); err != nil {
 		return err
+	}
+	return nil
+}
+
+func removeCurrentFile(folderPath string, prefix string) error {
+
+	files, err := os.ReadDir(folderPath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+
+		fileName := file.Name()
+		fmt.Println("fileName", fileName)
+		fmt.Println("prefix", prefix)
+		if strings.Contains(fileName, prefix) {
+			removeFileName := fmt.Sprintf("%s/%s", folderPath, fileName)
+			fmt.Println("removeFileName", removeFileName)
+			err := os.Remove(removeFileName)
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 	return nil
 }

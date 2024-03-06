@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
 	}))
+	app.Use(logger.New())
 	app.Static("/assets", "./assets")
 
 	err := mongodb.InitConnection()

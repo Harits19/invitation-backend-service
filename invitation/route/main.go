@@ -6,6 +6,7 @@ import (
 	"main/invitation/repository"
 	"main/model"
 	"main/response"
+	"main/util"
 	"mime/multipart"
 	"os"
 	"reflect"
@@ -50,14 +51,16 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 	}
 
 	for key := range form.File {
+
 		path, err := saveToLocal(ctx, invitation, form, key)
 		if err != nil {
 			return response.Error(ctx, err)
 		}
+
+		key = util.TitleCase(key)
 		setValue(key, invitation, path)
 
 	}
-
 	fmt.Println("set string", *invitation.Music)
 
 	if err := repository.UpdateInvitationDetail(invitation); err != nil {
@@ -75,11 +78,9 @@ func setValue(key string, source interface{}, replace string) {
 	for _, reflectKey := range reflectKeys {
 
 		result = reflect.Indirect(result).FieldByName(reflectKey)
-		fmt.Println("reflectKey", reflectKey, " result ", result.String(), " result.Kind()", result.Kind())
 
 		if result.Kind() == reflect.Ptr {
 			realResult := result.Elem()
-			fmt.Println("real value", realResult.String())
 			if realResult.Kind() == reflect.String {
 				realResult.SetString(replace)
 			}
@@ -109,10 +110,13 @@ func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Fo
 
 	id := time.Now().Unix()
 
-	if err := ctx.SaveFile(file, fmt.Sprintf("%s/%s_%d.%s", folderPath, prefix, id, fileType)); err != nil {
+	filePath := fmt.Sprintf("%s/%s_%d.%s", folderPath, prefix, id, fileType)
+
+	if err := ctx.SaveFile(file, filePath); err != nil {
 		return "", err
 	}
-	return folderPath, nil
+	filePath = filePath[1:]
+	return filePath, nil
 }
 
 func removeCurrentFile(folderPath string, prefix string) error {
@@ -125,11 +129,8 @@ func removeCurrentFile(folderPath string, prefix string) error {
 	for _, file := range files {
 
 		fileName := file.Name()
-		fmt.Println("fileName", fileName)
-		fmt.Println("prefix", prefix)
 		if strings.Contains(fileName, prefix) {
 			removeFileName := fmt.Sprintf("%s/%s", folderPath, fileName)
-			fmt.Println("removeFileName", removeFileName)
 			err := os.Remove(removeFileName)
 			if err != nil {
 				return err

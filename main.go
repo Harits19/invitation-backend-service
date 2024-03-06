@@ -1,7 +1,8 @@
 package main
 
 import (
-	"main/invitation"
+	greeting "main/greeting/route"
+	invitation "main/invitation/route"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -14,8 +15,10 @@ func main() {
 	}))
 
 	invitationRoute := app.Group("/invitation")
+	greetingRoute := app.Group("/greeting")
 
 	invitation.Route(invitationRoute)
+	greeting.Route(greetingRoute)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("test")

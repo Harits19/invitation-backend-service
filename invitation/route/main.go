@@ -1,11 +1,10 @@
-package invitation
+package route
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"main/invitation/repository"
 	"main/model"
-	"main/mongodb"
 	"main/response"
 	"mime/multipart"
 	"os"
@@ -13,8 +12,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Route(route fiber.Router) {
@@ -22,14 +19,10 @@ func Route(route fiber.Router) {
 	route.Put("/", updateInvitationDetail)
 }
 
-func collection(ctx *fiber.Ctx) *mongo.Collection {
-	return mongodb.InitConnection(ctx).Collection("invitation-detail")
-}
-
 func getInvitationDetail(ctx *fiber.Ctx) error {
 	name := ctx.Params("name")
 	var result *model.Invitation
-	err := collection(ctx).FindOne(context.Background(), bson.M{"name": name}).Decode(&result)
+	result, err := repository.GetInvitationDetailRepo(ctx, name)
 	if err != nil {
 		return response.Error(ctx, err)
 	}
@@ -55,8 +48,11 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		return response.Error(ctx, err)
 	}
 
-	if err := saveToLocal(ctx, invitation, form, "music"); err != nil {
-		return response.Error(ctx, err)
+	for key := range form.File {
+		if err := saveToLocal(ctx, invitation, form, key); err != nil {
+			return response.Error(ctx, err)
+		}
+
 	}
 
 	return response.Success(ctx, invitation)

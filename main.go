@@ -1,8 +1,10 @@
 package main
 
 import (
+	"log"
 	greeting "main/greeting/route"
 	invitation "main/invitation/route"
+	"main/mongodb"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -13,6 +15,12 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
 	}))
+
+	err := mongodb.InitConnection()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	invitationRoute := app.Group("/invitation")
 	greetingRoute := app.Group("/greeting")

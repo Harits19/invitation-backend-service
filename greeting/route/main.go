@@ -5,6 +5,6 @@ import (
 )
 
 func Route(route fiber.Router) {
-	route.Get("/:name")
-	route.Put("/")
+	// route.Get("/:name")
+	// route.Put("/")
 }

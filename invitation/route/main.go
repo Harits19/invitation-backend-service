@@ -22,7 +22,7 @@ func Route(route fiber.Router) {
 func getInvitationDetail(ctx *fiber.Ctx) error {
 	name := ctx.Params("name")
 	var result *model.Invitation
-	result, err := repository.GetInvitationDetailRepo(ctx, name)
+	result, err := repository.GetInvitationDetailByName(name)
 	if err != nil {
 		return response.Error(ctx, err)
 	}

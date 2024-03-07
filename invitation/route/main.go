@@ -7,6 +7,7 @@ import (
 	"main/common/response"
 	"main/common/util"
 	"main/invitation/repository"
+	"net/http"
 
 	"mime/multipart"
 	"os"
@@ -27,7 +28,11 @@ func getInvitationDetail(ctx *fiber.Ctx) error {
 	var result *model.Invitation
 	result, err := repository.GetInvitationDetailByName(name)
 	if err != nil {
-		return response.Error(ctx, err)
+		if err.Error() == "mongo: no documents in result" {
+			notFound := http.StatusNotFound
+			return response.Error(ctx, err, &notFound)
+		}
+		return response.Error(ctx, err, nil)
 	}
 
 	return response.Success(ctx, result)
@@ -41,14 +46,14 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 	form, err := ctx.MultipartForm()
 
 	if err != nil {
-		return response.Error(ctx, err)
+		return response.Error(ctx, err, nil)
 	}
 	jsonValue := form.Value["json"][0]
 
 	var invitation model.Invitation
 
 	if err := json.Unmarshal([]byte(jsonValue), &invitation); err != nil {
-		return response.Error(ctx, err)
+		return response.Error(ctx, err, nil)
 	}
 
 	for key := range form.File {
@@ -57,7 +62,7 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 
 		for _, path := range paths {
 			if err != nil {
-				return response.Error(ctx, err)
+				return response.Error(ctx, err, nil)
 			}
 
 			key = util.TitleCase(key)
@@ -68,7 +73,7 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 	fmt.Println("set string", *invitation.Music)
 
 	if err := repository.UpdateInvitationDetail(invitation); err != nil {
-		return response.Error(ctx, err)
+		return response.Error(ctx, err, nil)
 	}
 
 	return response.Success(ctx, invitation)

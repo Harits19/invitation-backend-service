@@ -13,8 +13,12 @@ func Success(ctx *fiber.Ctx, data interface{}) error {
 	})
 }
 
-func Error(ctx *fiber.Ctx, err error) error {
-	return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+func Error(ctx *fiber.Ctx, err error, status *int) error {
+	var finalStatus = http.StatusInternalServerError
+	if status != nil {
+		finalStatus = *status
+	}
+	return ctx.Status(finalStatus).JSON(fiber.Map{
 		"error": err.Error(),
 	})
 }

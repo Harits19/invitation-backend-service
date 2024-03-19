@@ -70,7 +70,6 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		}
 
 	}
-	fmt.Println("set string", *invitation.Music)
 
 	if err := repository.UpdateInvitationDetail(invitation); err != nil {
 		return response.Error(ctx, err, nil)

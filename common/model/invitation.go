@@ -4,39 +4,39 @@ import "time"
 
 type Invitation struct {
 	Id      *string    `json:"id,omitempty" bson:"_id,omitempty"`
-	Name    string     `json:"name"`
-	Music   *string    `json:"music"`
-	Initial *string    `json:"initial"`
-	Date    time.Time  `json:"date"`
-	Groom   BrideGroom `json:"groom"`
-	Bride   BrideGroom `json:"bride"`
-	Address Address    `json:"address"`
-	Photo   Photo      `json:"photo"`
+	Name    string     `json:"name" bson:"name,omitempty"`
+	Music   *string    `json:"music" bson:"music,omitempty"`
+	Initial *string    `json:"initial" bson:"initial,omitempty"`
+	Date    time.Time  `json:"date" bson:"date,omitempty"`
+	Groom   BrideGroom `json:"groom" bson:"groom,omitempty"`
+	Bride   BrideGroom `json:"bride" bson:"bride,omitempty"`
+	Address Address    `json:"address" bson:"address,omitempty"`
+	Photo   *Photo     `json:"photo" bson:"photo,omitempty"`
 }
 
 type Photo struct {
-	Cover *string `json:"cover"`
+	Cover *string `json:"cover" bson:"cover,omitempty"`
 	Side  struct {
-		Top    *string `json:"top"`
-		Bottom *string `json:"bottom"`
-	} `json:"side" bson:"side"`
-	Background *string   `json:"background"`
-	Slide      *[]string `json:"slide"`
-	Divider    *string   `json:"divider"`
-	Gallery    *[]string `json:"gallery"`
+		Top    *string `json:"top" bson:"top,omitempty"`
+		Bottom *string `json:"bottom" bson:"bottom,omitempty"`
+	} `json:"side" bson:"side,omitempty"`
+	Background *string   `json:"background" bson:"background,omitempty"`
+	Slide      *[]string `json:"slide" bson:"slide,omitempty"`
+	Divider    *string   `json:"divider" bson:"divider,omitempty"`
+	Gallery    *[]string `json:"gallery" bson:"gallery,omitempty"`
 }
 
 type BrideGroom struct {
-	Name       *string `json:"name"`
-	FatherName string  `json:"father_name" bson:"father_name"`
-	MotherName string  `json:"mother_name" bson:"mother_name"`
-	Address    string  `json:"address"`
-	Instagram  string  `json:"instagram"`
-	Photo      *string `json:"photo"`
+	Name       *string `json:"name" bson:"name,omitempty"`
+	FatherName string  `json:"father_name" bson:"father_name,omitempty"`
+	MotherName string  `json:"mother_name" bson:"mother_name,omitempty"`
+	Address    string  `json:"address" bson:"address,omitempty"`
+	Instagram  string  `json:"instagram" bson:"instagram,omitempty"`
+	Photo      *string `json:"photo" bson:"photo,omitempty"`
 }
 
 type Address struct {
-	Detail    string `json:"detail"`
-	Latitude  string `json:"latitude"`
-	Longitude string `json:"longitude"`
+	Detail    string `json:"detail" bson:"detail,omitempty"`
+	Latitude  string `json:"latitude" bson:"latitude,omitempty"`
+	Longitude string `json:"longitude" bson:"longitude,omitempty"`
 }

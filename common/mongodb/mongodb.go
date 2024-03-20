@@ -15,7 +15,7 @@ func InitConnection() error {
 	fmt.Println("init mongodb connection")
 	context, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	uri := "mongodb://root:example@localhost:27017/"
+	uri := "mongodb://root:example@38.47.180.46:27017/"
 	dbName := "invitation"
 	client, err := mongo.Connect(context, options.Client().ApplyURI(uri))
 	if err != nil {

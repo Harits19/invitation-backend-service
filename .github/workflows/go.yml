@@ -27,4 +27,5 @@ jobs:
             go get .
             go build
             kill -9 $(lsof -t -i:8080)
-            nohup ./main &
+            ./main &
+            curl http://localhost:8080

@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: 22
           script: |
-            mkdir ~/app/invitation-backend
+            mkdir -p ~/app/invitation-backend
             cd ~/app/invitation-backend
             git pull origin master
             git status

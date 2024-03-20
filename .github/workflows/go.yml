@@ -24,4 +24,5 @@ jobs:
             cd ~/app/invitation-backend
             git pull origin master
             git status
+            go get .
             go build

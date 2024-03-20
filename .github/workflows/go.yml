@@ -28,4 +28,4 @@ jobs:
             go build
             kill -9 $(lsof -t -i:8080)
             ./main &
-            exit
+            exit 0

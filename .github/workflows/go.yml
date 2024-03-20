@@ -27,4 +27,3 @@ jobs:
             go get .
             go build
             kill $(lsof -t -i:8080)
-            ./main

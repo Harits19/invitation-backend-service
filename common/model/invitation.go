@@ -8,8 +8,8 @@ type Invitation struct {
 	Music   *string    `json:"music" bson:"music,omitempty"`
 	Initial *string    `json:"initial" bson:"initial,omitempty"`
 	Date    time.Time  `json:"date" bson:"date,omitempty"`
-	Groom   BrideGroom `json:"groom" bson:"groom,omitempty"`
-	Bride   BrideGroom `json:"bride" bson:"bride,omitempty"`
+	Groom   *BrideGroom `json:"groom" bson:"groom,omitempty"`
+	Bride   *BrideGroom `json:"bride" bson:"bride,omitempty"`
 	Address Address    `json:"address" bson:"address,omitempty"`
 	Photo   *Photo     `json:"photo" bson:"photo,omitempty"`
 }

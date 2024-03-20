@@ -28,4 +28,8 @@ jobs:
             go build
             kill -9 $(lsof -t -i:8080)
             ./main &
-            exit 0
+      - uses: actions/checkout@v1
+      - name: Try to fail
+        run: exit 0
+
+

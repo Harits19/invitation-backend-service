@@ -23,7 +23,4 @@ jobs:
             cd ~/app/invitation-backend
             git pull origin master
             git status
-            yarn install
-            yarn build
-            pm2 reload ExampleCiCdAutoDeployVps
-            pm2 restart ExampleCiCdAutoDeployVps
+            go build

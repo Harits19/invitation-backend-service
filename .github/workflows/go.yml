@@ -24,9 +24,12 @@ jobs:
             cd ~/app/invitation-backend
             git pull origin master
             git status
-            go get .
-            go build
-            kill -9 $(lsof -t -i:8080)
-            ./main & exit 0
+            docker build -t invitation-backend-image .
+            docker container create --name invitation-backend-container -e PORT=8080 -e INSTANCE_ID="invitation-backend-instance" -p 8080:8080 invitation-backend-image
+            docker container stop invitation-backend-container
+            docker container ls
+            docker container start invitation-backend-container
+            docker container ls
+          
 
 

@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	constan.InitEnv()
 	app := fiber.New(fiber.Config{
 		BodyLimit: 10 * constan.MBSize,
 	})

@@ -21,6 +21,26 @@ import (
 func Route(route fiber.Router) {
 	route.Get("/:name", getInvitationDetail)
 	route.Put("/", updateInvitationDetail)
+	route.Post("/", createInvitation)
+}
+
+func createInvitation(ctx *fiber.Ctx) (err error) {
+	body := ctx.Body()
+	var invitation model.Invitation
+
+	if err = json.Unmarshal(body, &invitation); err != nil {
+		return response.Error(ctx, err, nil)
+	}
+
+	util.Log(invitation)
+	err = repository.CreateInvitation(invitation)
+
+	if err != nil {
+		return response.Error(ctx, err, nil)
+	}
+
+	return response.Success(ctx, "success create invitation ")
+
 }
 
 func getInvitationDetail(ctx *fiber.Ctx) error {

@@ -7,7 +7,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var OBJECT_STORAGE_KEY string
+type IEnv struct {
+	OBJECT_STORAGE_ACCESS_KEY string
+	OBJECT_STORAGE_SECRET_KEY string
+	OBJECT_STORAGE_REGION     string
+	OBJECT_STORAGE_ENDPOINT   string
+}
+
+var ENV IEnv
 
 func InitEnv() {
 	err := godotenv.Load()
@@ -15,6 +22,11 @@ func InitEnv() {
 		log.Fatal("Error loading .env file", err)
 	}
 
-	OBJECT_STORAGE_KEY = os.Getenv("OBJECT_STORAGE_KEY")
+	ENV = IEnv{
+		OBJECT_STORAGE_ACCESS_KEY: os.Getenv("OBJECT_STORAGE_ACCESS_KEY"),
+		OBJECT_STORAGE_SECRET_KEY: os.Getenv("OBJECT_STORAGE_SECRET_KEY"),
+		OBJECT_STORAGE_REGION:     os.Getenv("OBJECT_STORAGE_REGION"),
+		OBJECT_STORAGE_ENDPOINT:   os.Getenv("OBJECT_STORAGE_ENDPOINT"),
+	}
 
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"main/common/model"
 	"main/common/response"
+	"main/common/s3"
 	"main/common/util"
 	"main/invitation/repository"
 	"net/http"
@@ -76,24 +77,20 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		return response.Error(ctx, err, nil)
 	}
 
-	for key := range form.File {
-
-		paths, err := saveToLocal(ctx, invitation, form, key)
-
-		for _, path := range paths {
-			if err != nil {
-				return response.Error(ctx, err, nil)
-			}
-
-			key = util.TitleCase(key)
-			setValue(key, invitation, path)
-		}
-
-	}
-
-	if err := repository.UpdateInvitationDetail(invitation); err != nil {
+	bucket := s3.New(fmt.Sprint(*invitation.Id))
+	if err := bucket.CreateBucket(); err != nil {
 		return response.Error(ctx, err, nil)
 	}
+
+	for key := range form.File {
+
+		saveToLocal(bucket, ctx, invitation, form, key)
+
+	}
+
+	// if err := repository.UpdateInvitationDetail(invitation); err != nil {
+	// 	return response.Error(ctx, err, nil)
+	// }
 
 	return response.Success(ctx, invitation)
 }
@@ -121,22 +118,12 @@ func setValue(key string, source interface{}, replace string) {
 	}
 }
 
-func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) ([]string, error) {
-	filePathList := []string{}
+func saveToLocal(bucket s3.Bucket, ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) ([]string, error) {
+	fileUrlList := []string{}
 	for index, file := range form.File[prefix] {
 
-		folderPath := fmt.Sprintf("./assets/%s", *invitation.Id)
+		folderPath := "assets"
 		newPrefix := fmt.Sprintf("%s%d", prefix, index)
-		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-			if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
-				return filePathList, err
-			}
-		} else {
-			err := removeCurrentFile(folderPath, newPrefix)
-			if err != nil {
-				return filePathList, err
-			}
-		}
 
 		fileName := strings.Split(file.Filename, ".")
 		fileType := fileName[len(fileName)-1]
@@ -145,14 +132,16 @@ func saveToLocal(ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Fo
 
 		filePath := fmt.Sprintf("%s/%s_%d.%s", folderPath, newPrefix, id, fileType)
 
-		if err := ctx.SaveFile(file, filePath); err != nil {
-			return filePathList, err
+		url, err := bucket.UploadFile(filePath, *file)
+
+		if err != nil {
+			return fileUrlList, err
 		}
-		filePath = filePath[1:]
-		filePathList = append(filePathList, filePath)
+
+		fileUrlList = append(fileUrlList, *url)
 	}
 
-	return filePathList, nil
+	return fileUrlList, nil
 
 }
 

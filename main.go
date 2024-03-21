@@ -4,6 +4,8 @@ import (
 	"log"
 	"main/common/constan"
 	"main/common/mongodb"
+	"main/common/s3"
+	"main/common/util"
 	greeting "main/greeting/route"
 	invitation "main/invitation/route"
 
@@ -13,7 +15,9 @@ import (
 )
 
 func main() {
+	util.Connected()
 	constan.InitEnv()
+	s3.InitConnection()
 	app := fiber.New(fiber.Config{
 		BodyLimit: 10 * constan.MBSize,
 	})

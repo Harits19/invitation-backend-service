@@ -94,40 +94,34 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 func setInvitationValue(invitation model.Invitation, prefix string) {
 	prefix = util.TitleCase(prefix)
 
-	prefix, index := util.GetRealKey(prefix)
 	keys := strings.Split(prefix, ".")
 
 	r := reflect.ValueOf(invitation)
 
+	dummyNewValue := "dummy new value"
+
 	for _, key := range keys {
+
 		value := r.FieldByName(key)
 
 		if value.Kind() == reflect.Ptr {
 			value = value.Elem()
 		}
 
+		fmt.Println("key", key, value.Kind())
+
 		if value.Kind() == reflect.Struct {
 			r = value
 			continue
 		}
-		fmt.Println("key", key, value.Kind())
 
 		if value.Kind() == reflect.String {
-			fmt.Println("set value key", prefix, value.String())
+			value.SetString(dummyNewValue)
 			break
 		}
 
 		if value.Kind() == reflect.Slice {
-			if value.Len() == 0 {
-				continue
-			}
-			value = value.Index(index)
-
-			if value.Kind() == reflect.String {
-				fmt.Println("set value key", prefix, value.String())
-				break
-			}
-
+			value.Set(reflect.ValueOf([]string{"test1", "test2"}))
 		}
 
 	}

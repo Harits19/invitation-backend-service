@@ -18,7 +18,7 @@ import (
 
 func Route(route fiber.Router) {
 	route.Get("/:name", getInvitationDetail)
-	route.Put("/", updateInvitationDetail)
+	route.Patch("/", updateInvitationDetail)
 	route.Post("/", createInvitation)
 }
 

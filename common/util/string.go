@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -30,4 +31,24 @@ func Stringify(value interface{}) {
 
 	fmt.Println(string(result))
 
+}
+
+func GetRealKey(key string) (string, int) {
+	splitKey := strings.Split(key, ".")
+	lastIndex := len(splitKey) - 1
+	lastKey := splitKey[lastIndex]
+
+	lasKeyIndex, err := strconv.Atoi(lastKey)
+
+	if err != nil {
+		return key, 0
+	}
+
+	newKey := strings.Join(RemoveIndex(splitKey, lastIndex), ".")
+
+	return newKey, lasKeyIndex
+}
+
+func RemoveIndex(s []string, index int) []string {
+	return append(s[:index], s[index+1:]...)
 }

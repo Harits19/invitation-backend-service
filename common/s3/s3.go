@@ -2,10 +2,13 @@ package s3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"main/common/constan"
+	"main/common/util"
 	"mime/multipart"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -160,9 +163,31 @@ func (bucket Bucket) FindObjectByName(name string) {
 	})
 }
 
-func (bucket Bucket) DeleteObjectByName(name string){
+func (bucket Bucket) DeleteObjectByName(name string) {
 	client.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(bucket.bucketName),
-		Key: aws.String(name),
+		Key:    aws.String(name),
 	})
+}
+
+func (bucket Bucket) SaveToStorage(fileHeader []*multipart.FileHeader, prefix string) (string, error) {
+	if len(fileHeader) == 0 {
+		return "", errors.New("file header length = 0")
+	}
+
+	file := fileHeader[0]
+	fileName := strings.Split(file.Filename, ".")
+	fileExtension := fileName[len(fileName)-1]
+
+	prefix, index := util.GetRealKey(prefix)
+
+	newFileName := fmt.Sprintf("%s/%s%d", "assets", prefix, index)
+
+	uniqueId := time.Now().Unix()
+
+	filePath := fmt.Sprintf("%s_%d.%s", newFileName, uniqueId, fileExtension)
+
+	url, err := bucket.UploadFile(filePath, *file)
+
+	return *url, err
 }

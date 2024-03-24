@@ -2,7 +2,6 @@ package route
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"main/common/model"
 	"main/common/response"
@@ -10,11 +9,8 @@ import (
 	"main/common/util"
 	"main/invitation/repository"
 	"net/http"
-	"strconv"
-
-	"mime/multipart"
+	"reflect"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -82,50 +78,58 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		return response.Error(ctx, err, nil)
 	}
 
-	for prefix, file := range form.File {
-		saveToStorage(bucket, file, prefix)
+	for key, files := range form.File {
+		if len(files) == 0 {
+			continue
+		}
+		file := files[0]
+		fmt.Println(key, file.Filename)
+
+		setInvitationValue(invitation, key)
 	}
+
 	return response.Success(ctx, invitation)
 }
 
-func saveToStorage(bucket s3.Bucket, fileHeader []*multipart.FileHeader, prefix string) (string, error) {
-	if len(fileHeader) == 0 {
-		return "", errors.New("file header length = 0")
+func setInvitationValue(invitation model.Invitation, prefix string) {
+	prefix = util.TitleCase(prefix)
+
+	prefix, index := util.GetRealKey(prefix)
+	keys := strings.Split(prefix, ".")
+
+	r := reflect.ValueOf(invitation)
+
+	for _, key := range keys {
+		value := r.FieldByName(key)
+
+		if value.Kind() == reflect.Ptr {
+			value = value.Elem()
+		}
+
+		if value.Kind() == reflect.Struct {
+			r = value
+			continue
+		}
+		fmt.Println("key", key, value.Kind())
+
+		if value.Kind() == reflect.String {
+			fmt.Println("set value key", prefix, value.String())
+			break
+		}
+
+		if value.Kind() == reflect.Slice {
+			if value.Len() == 0 {
+				continue
+			}
+			value = value.Index(index)
+
+			if value.Kind() == reflect.String {
+				fmt.Println("set value key", prefix, value.String())
+				break
+			}
+
+		}
+
 	}
 
-	file := fileHeader[0]
-	fileName := strings.Split(file.Filename, ".")
-	fileExtension := fileName[len(fileName)-1]
-
-	prefix, index := getRealKey(prefix)
-
-	newFileName := fmt.Sprintf("%s/%s%d", "assets", prefix, index)
-
-	uniqueId := time.Now().Unix()
-
-	filePath := fmt.Sprintf("%s_%d.%s", newFileName, uniqueId, fileExtension)
-
-	url, err := bucket.UploadFile(filePath, *file)
-
-	return *url, err
-}
-
-func getRealKey(key string) (string, int) {
-	splitKey := strings.Split(key, ".")
-	lastIndex := len(splitKey) - 1
-	lastKey := splitKey[lastIndex]
-
-	lasKeyIndex, err := strconv.Atoi(lastKey)
-
-	if err != nil {
-		return key, 0
-	}
-
-	newKey := strings.Join(removeIndex(splitKey, lastIndex), "")
-
-	return newKey, lasKeyIndex
-}
-
-func removeIndex(s []string, index int) []string {
-	return append(s[:index], s[index+1:]...)
 }

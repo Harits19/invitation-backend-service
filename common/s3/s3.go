@@ -152,3 +152,17 @@ func (bucket Bucket) getListOfBucketFile() {
 		})
 	}
 }
+
+func (bucket Bucket) FindObjectByName(name string) {
+	client.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucket.bucketName),
+		Key:    aws.String(name),
+	})
+}
+
+func (bucket Bucket) DeleteObjectByName(name string){
+	client.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(bucket.bucketName),
+		Key: aws.String(name),
+	})
+}

@@ -21,7 +21,7 @@ func TitleCase(key string) string {
 	return newKey
 }
 
-func Log(value interface{}) {
+func Stringify(value interface{}) {
 
 	result, err := json.Marshal(value)
 	if err != nil {

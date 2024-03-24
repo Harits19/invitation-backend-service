@@ -34,7 +34,7 @@ func CreateInvitation(invitation model.Invitation) error {
 	var resultFind *model.Invitation
 	collection().FindOne(context.Background(), bson.M{"name": invitation.Name}).Decode(&resultFind)
 
-	util.Log(resultFind)
+	util.Stringify(resultFind)
 
 	if resultFind != nil {
 		return errors.New("invitation name already exist")

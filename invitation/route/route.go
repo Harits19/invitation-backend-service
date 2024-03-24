@@ -2,6 +2,7 @@ package route
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"main/common/model"
 	"main/common/response"
@@ -9,10 +10,9 @@ import (
 	"main/common/util"
 	"main/invitation/repository"
 	"net/http"
+	"strconv"
 
 	"mime/multipart"
-	"os"
-	"reflect"
 	"strings"
 	"time"
 
@@ -33,7 +33,7 @@ func createInvitation(ctx *fiber.Ctx) (err error) {
 		return response.Error(ctx, err, nil)
 	}
 
-	util.Log(invitation)
+	util.Stringify(invitation)
 	err = repository.CreateInvitation(invitation)
 
 	if err != nil {
@@ -82,87 +82,50 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		return response.Error(ctx, err, nil)
 	}
 
-	for key := range form.File {
-
-		saveToLocal(bucket, ctx, invitation, form, key)
-
+	for prefix, file := range form.File {
+		saveToStorage(bucket, file, prefix)
 	}
-
-	// if err := repository.UpdateInvitationDetail(invitation); err != nil {
-	// 	return response.Error(ctx, err, nil)
-	// }
-
 	return response.Success(ctx, invitation)
 }
 
-func setValue(key string, source interface{}, replace string) {
-
-	reflectKeys := strings.Split(key, ".")
-	result := reflect.ValueOf(source)
-
-	for _, reflectKey := range reflectKeys {
-
-		result = reflect.Indirect(result).FieldByName(reflectKey)
-
-		if result.Kind() == reflect.Ptr {
-			realResult := result.Elem()
-			if realResult.Kind() == reflect.String {
-				realResult.SetString(replace)
-			} else if realResult.Kind() == reflect.Slice {
-				newValue := reflect.Append(realResult, reflect.ValueOf(replace))
-				realResult.Set(newValue)
-			}
-
-		}
-
-	}
-}
-
-func saveToLocal(bucket s3.Bucket, ctx *fiber.Ctx, invitation model.Invitation, form *multipart.Form, prefix string) ([]string, error) {
-	fileUrlList := []string{}
-	for index, file := range form.File[prefix] {
-
-		folderPath := "assets"
-		newPrefix := fmt.Sprintf("%s%d", prefix, index)
-
-		fileName := strings.Split(file.Filename, ".")
-		fileType := fileName[len(fileName)-1]
-
-		id := time.Now().Unix()
-
-		filePath := fmt.Sprintf("%s/%s_%d.%s", folderPath, newPrefix, id, fileType)
-
-		url, err := bucket.UploadFile(filePath, *file)
-
-		if err != nil {
-			return fileUrlList, err
-		}
-
-		fileUrlList = append(fileUrlList, *url)
+func saveToStorage(bucket s3.Bucket, fileHeader []*multipart.FileHeader, prefix string) (string, error) {
+	if len(fileHeader) == 0 {
+		return "", errors.New("file header length = 0")
 	}
 
-	return fileUrlList, nil
+	file := fileHeader[0]
+	fileName := strings.Split(file.Filename, ".")
+	fileExtension := fileName[len(fileName)-1]
 
+	prefix, index := getRealKey(prefix)
+
+	newFileName := fmt.Sprintf("%s/%s%d", "assets", prefix, index)
+
+	uniqueId := time.Now().Unix()
+
+	filePath := fmt.Sprintf("%s_%d.%s", newFileName, uniqueId, fileExtension)
+
+	url, err := bucket.UploadFile(filePath, *file)
+
+	return *url, err
 }
 
-func removeCurrentFile(folderPath string, prefix string) error {
+func getRealKey(key string) (string, int) {
+	splitKey := strings.Split(key, ".")
+	lastIndex := len(splitKey) - 1
+	lastKey := splitKey[lastIndex]
 
-	files, err := os.ReadDir(folderPath)
+	lasKeyIndex, err := strconv.Atoi(lastKey)
+
 	if err != nil {
-		return err
+		return key, 0
 	}
 
-	for _, file := range files {
+	newKey := strings.Join(removeIndex(splitKey, lastIndex), "")
 
-		fileName := file.Name()
-		if strings.Contains(fileName, prefix) {
-			removeFileName := fmt.Sprintf("%s/%s", folderPath, fileName)
-			err := os.Remove(removeFileName)
-			if err != nil {
-				return err
-			}
-		}
+	return newKey, lasKeyIndex
+}
 
-	}
-	return nil
+func removeIndex(s []string, index int) []string {
+	return append(s[:index], s[index+1:]...)
 }

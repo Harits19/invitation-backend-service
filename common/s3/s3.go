@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"main/common/constan"
-	"main/common/util"
 	"mime/multipart"
 	"os"
 	"strings"
@@ -169,12 +168,10 @@ func (bucket Bucket) DeleteObjectByName(name string) {
 	})
 }
 
-func (bucket Bucket) SaveToStorage(file *multipart.FileHeader, prefix string) (string, error) {
+func (bucket Bucket) SaveToStorage(file *multipart.FileHeader, prefix string, index int) (string, error) {
 
 	fileName := strings.Split(file.Filename, ".")
 	fileExtension := fileName[len(fileName)-1]
-
-	prefix, index := util.GetRealKey(prefix)
 
 	newFileName := fmt.Sprintf("%s/%s%d", "assets", prefix, index)
 

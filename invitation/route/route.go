@@ -84,7 +84,19 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 			continue
 		}
 
-		setInvitationValue(bucket, invitation, key, files)
+		err := setInvitationValue(bucket, invitation, key, files)
+
+		if err != nil {
+			return response.Error(ctx, err, nil)
+
+		}
+	}
+
+	err = repository.UpdateInvitationDetail(invitation)
+
+	if err != nil {
+		return response.Error(ctx, err, nil)
+
 	}
 
 	return response.Success(ctx, invitation)
@@ -99,8 +111,8 @@ func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix st
 
 	urls := []string{}
 
-	for _, file := range files {
-		url, err := bucket.SaveToStorage(file, prefix)
+	for index, file := range files {
+		url, err := bucket.SaveToStorage(file, prefix, index)
 		if err != nil {
 			return err
 		}
@@ -123,7 +135,7 @@ func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix st
 		}
 
 		if value.Kind() == reflect.String {
-			value.SetString(urls[0])
+			value.Set(reflect.ValueOf(urls[0]))
 			break
 		}
 

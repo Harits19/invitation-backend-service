@@ -21,8 +21,11 @@ func main() {
 	app := fiber.New(fiber.Config{
 		BodyLimit: 10 * constan.MBSize,
 	})
+
 	app.Use(cors.New(cors.Config{
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowOrigins: "*",
+		
 	}))
 	app.Use(logger.New())
 	app.Static("/assets", "./assets")

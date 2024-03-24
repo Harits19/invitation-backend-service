@@ -8,6 +8,7 @@ import (
 	"main/common/s3"
 	"main/common/util"
 	"main/invitation/repository"
+	"mime/multipart"
 	"net/http"
 	"reflect"
 	"strings"
@@ -82,23 +83,29 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		if len(files) == 0 {
 			continue
 		}
-		file := files[0]
-		fmt.Println(key, file.Filename)
 
-		setInvitationValue(invitation, key)
+		setInvitationValue(bucket, invitation, key, files)
 	}
 
 	return response.Success(ctx, invitation)
 }
 
-func setInvitationValue(invitation model.Invitation, prefix string) {
+func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix string, files []*multipart.FileHeader) error {
 	prefix = util.TitleCase(prefix)
 
 	keys := strings.Split(prefix, ".")
 
 	r := reflect.ValueOf(invitation)
 
-	dummyNewValue := "dummy new value"
+	urls := []string{}
+
+	for _, file := range files {
+		url, err := bucket.SaveToStorage(file, prefix)
+		if err != nil {
+			return err
+		}
+		urls = append(urls, url)
+	}
 
 	for _, key := range keys {
 
@@ -116,14 +123,16 @@ func setInvitationValue(invitation model.Invitation, prefix string) {
 		}
 
 		if value.Kind() == reflect.String {
-			value.SetString(dummyNewValue)
+			value.SetString(urls[0])
 			break
 		}
 
 		if value.Kind() == reflect.Slice {
-			value.Set(reflect.ValueOf([]string{"test1", "test2"}))
+			value.Set(reflect.ValueOf(urls))
 		}
 
 	}
+
+	return nil
 
 }

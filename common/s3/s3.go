@@ -2,7 +2,6 @@ package s3
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"main/common/constan"
 	"main/common/util"
@@ -170,12 +169,8 @@ func (bucket Bucket) DeleteObjectByName(name string) {
 	})
 }
 
-func (bucket Bucket) SaveToStorage(fileHeader []*multipart.FileHeader, prefix string) (string, error) {
-	if len(fileHeader) == 0 {
-		return "", errors.New("file header length = 0")
-	}
+func (bucket Bucket) SaveToStorage(file *multipart.FileHeader, prefix string) (string, error) {
 
-	file := fileHeader[0]
 	fileName := strings.Split(file.Filename, ".")
 	fileExtension := fileName[len(fileName)-1]
 

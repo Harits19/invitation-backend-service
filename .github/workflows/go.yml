@@ -3,7 +3,7 @@ name: cd
 on:
   push:
     branches:
-      - release
+      - master
 
 jobs:
   cd:
@@ -22,6 +22,10 @@ jobs:
           script: |
             mkdir -p ~/app/invitation-backend
             cd ~/app/invitation-backend
+            git init
+            git clone https://github.com/Harits19/invitation-backend-service.git .
+            git remote add origin https://github.com/Harits19/invitation-backend-service.git
+            git branch --set-upstream-to=origin/master master
             git pull origin master
             git status
             # docker build -t invitation-backend-image .

@@ -3,7 +3,7 @@ name: cd
 on:
   push:
     branches:
-      - master
+      - masterss
 
 jobs:
   cd:
@@ -36,3 +36,4 @@ jobs:
             # docker container create --name invitation-backend-container -e PORT=8080 -e INSTANCE_ID="invitation-backend-instance" -p 8080:8080 --restart always invitation-backend-image
             # docker container start invitation-backend-container
             # docker container ls
+            # sudo ufw allow 8080

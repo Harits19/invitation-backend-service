@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
+	"main/common/bucket"
 	"main/common/constan"
 	"main/common/mongodb"
-	"main/common/s3"
 	"main/common/util"
 	greeting "main/greeting/route"
 	invitation "main/invitation/route"
@@ -17,7 +17,7 @@ import (
 func main() {
 	util.Connected()
 	constan.InitEnv()
-	s3.InitConnection()
+	bucket.InitConnection()
 	app := fiber.New(fiber.Config{
 		BodyLimit: 10 * constan.MBSize,
 	})
@@ -25,7 +25,6 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowOrigins: "*",
-		
 	}))
 	app.Use(logger.New())
 	app.Static("/assets", "./assets")

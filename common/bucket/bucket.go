@@ -1,4 +1,4 @@
-package s3
+package bucket
 
 import (
 	"context"
@@ -137,21 +137,13 @@ func (bucket Bucket) deleteAllBucketObject() {
 	}
 }
 
-func (bucket Bucket) getListOfBucketFile() {
+func (bucket Bucket) GetListOfBucketFile() (*s3.ListObjectsV2Output, error) {
 	BucketName := bucket.bucketName
 
-	res, _ := client.ListObjectsV2(&s3.ListObjectsV2Input{
+	return client.ListObjectsV2(&s3.ListObjectsV2Input{
 		Bucket: aws.String(BucketName),
 	})
 
-	for _, object := range res.Contents {
-		fmt.Printf("Found object: %s, size: %d\n", *object.Key, *object.Size)
-
-		_, _ = client.DeleteObject(&s3.DeleteObjectInput{
-			Bucket: aws.String(BucketName),
-			Key:    aws.String(*object.Key),
-		})
-	}
 }
 
 func (bucket Bucket) FindObjectByName(name string) {
@@ -161,11 +153,19 @@ func (bucket Bucket) FindObjectByName(name string) {
 	})
 }
 
-func (bucket Bucket) DeleteObjectByName(name string) {
-	client.DeleteObject(&s3.DeleteObjectInput{
+func (bucket Bucket) DeleteObjectByName(name string) error {
+
+	fmt.Println("start delete file with key", name)
+	_, err := client.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(bucket.bucketName),
 		Key:    aws.String(name),
 	})
+
+	return err
+}
+
+func generateFileName(prefix string, index int) string {
+	return fmt.Sprintf("%s/%s.%d", "assets", prefix, index)
 }
 
 func (bucket Bucket) SaveToStorage(file *multipart.FileHeader, prefix string, index int) (string, error) {
@@ -173,7 +173,7 @@ func (bucket Bucket) SaveToStorage(file *multipart.FileHeader, prefix string, in
 	fileName := strings.Split(file.Filename, ".")
 	fileExtension := fileName[len(fileName)-1]
 
-	newFileName := fmt.Sprintf("%s/%s%d", "assets", prefix, index)
+	newFileName := generateFileName(prefix, index)
 
 	uniqueId := time.Now().Unix()
 
@@ -182,4 +182,21 @@ func (bucket Bucket) SaveToStorage(file *multipart.FileHeader, prefix string, in
 	url, err := bucket.UploadFile(filePath, *file)
 
 	return *url, err
+}
+
+func (bucket Bucket) FindAndDelete(files *s3.ListObjectsV2Output, prefix string, index int) error {
+	prefix = generateFileName(prefix, index)
+	for _, file := range files.Contents {
+		if strings.Contains(*file.Key, prefix) {
+
+			fmt.Println("detected file with prefix", prefix)
+			fmt.Println("file name", *file.Key)
+
+			err := bucket.DeleteObjectByName(*file.Key)
+
+			return err
+
+		}
+	}
+	return nil
 }

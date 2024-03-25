@@ -3,9 +3,9 @@ package route
 import (
 	"encoding/json"
 	"fmt"
+	"main/common/bucket"
 	"main/common/model"
 	"main/common/response"
-	"main/common/s3"
 	"main/common/util"
 	"main/invitation/repository"
 	"mime/multipart"
@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -74,8 +75,14 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 		return response.Error(ctx, err, nil)
 	}
 
-	bucket := s3.New(fmt.Sprint(*invitation.Id))
+	bucket := bucket.New(fmt.Sprint(*invitation.Id))
 	if err := bucket.CreateBucket(); err != nil {
+		return response.Error(ctx, err, nil)
+	}
+
+	bucketFiles, err := bucket.GetListOfBucketFile()
+
+	if err != nil {
 		return response.Error(ctx, err, nil)
 	}
 
@@ -84,7 +91,7 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 			continue
 		}
 
-		err := setInvitationValue(bucket, invitation, key, files[0])
+		err := setInvitationValue(bucket, bucketFiles, invitation, key, files[0])
 
 		if err != nil {
 			return response.Error(ctx, err, nil)
@@ -102,7 +109,7 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 	return response.Success(ctx, invitation)
 }
 
-func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix string, file *multipart.FileHeader) error {
+func setInvitationValue(bucket bucket.Bucket, files *s3.ListObjectsV2Output, invitation model.Invitation, prefix string, file *multipart.FileHeader) error {
 	prefix = util.TitleCase(prefix)
 	prefix, index := util.GetRealKey(prefix)
 
@@ -138,6 +145,10 @@ func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix st
 		if value.Kind() == reflect.Slice {
 			value = value.Index(index)
 			if value.CanSet() {
+				err := bucket.FindAndDelete(files, prefix, index)
+				if err != nil {
+					return err
+				}
 				value.Set(reflect.ValueOf(url))
 			}
 		}

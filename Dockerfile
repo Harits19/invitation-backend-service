@@ -1,27 +1,13 @@
-# syntax=docker/dockerfile:1
+FROM golang:alpine
 
-FROM golang:1.22.0
+RUN apk update && apk add --no-cache git
 
-# Set destination for COPY
 WORKDIR /app
 
-# Download Go modules
-COPY go.mod go.sum ./
-RUN go mod download
+COPY . .
 
-# Copy the source code. Note the slash at the end, as explained in
-# https://docs.docker.com/reference/dockerfile/#copy
-COPY *.go ./
+RUN go mod tidy
 
-# Build
-RUN go build -o /invitation-backend
+RUN go build -o binary
 
-# Optional:
-# To bind to a TCP port, runtime parameters must be supplied to the docker command.
-# But we can document in the Dockerfile what ports
-# the application is going to listen on by default.
-# https://docs.docker.com/reference/dockerfile/#expose
-EXPOSE 8080
-
-# Run
-CMD ["/invitation-backend"]
+ENTRYPOINT ["/app/binary"]

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:alpine
+FROM golang:1.18
 
 # Set destination for COPY
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN go mod download
 COPY *.go ./
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /invitation-backend
+RUN go build -o /invitation-backend
 
 # Optional:
 # To bind to a TCP port, runtime parameters must be supplied to the docker command.

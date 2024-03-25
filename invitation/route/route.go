@@ -19,7 +19,7 @@ import (
 
 func Route(route fiber.Router) {
 	route.Get("/:name", getInvitationDetail)
-	route.Patch("/", updateInvitationDetail)
+	route.Patch("/:name", updateInvitationDetail)
 	route.Post("/", createInvitation)
 }
 

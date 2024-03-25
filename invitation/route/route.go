@@ -84,7 +84,7 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 			continue
 		}
 
-		err := setInvitationValue(bucket, invitation, key, files)
+		err := setInvitationValue(bucket, invitation, key, files[0])
 
 		if err != nil {
 			return response.Error(ctx, err, nil)
@@ -102,21 +102,17 @@ func updateInvitationDetail(ctx *fiber.Ctx) error {
 	return response.Success(ctx, invitation)
 }
 
-func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix string, files []*multipart.FileHeader) error {
+func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix string, file *multipart.FileHeader) error {
 	prefix = util.TitleCase(prefix)
+	prefix, index := util.GetRealKey(prefix)
 
 	keys := strings.Split(prefix, ".")
 
 	r := reflect.ValueOf(invitation)
 
-	urls := []string{}
-
-	for index, file := range files {
-		url, err := bucket.SaveToStorage(file, prefix, index)
-		if err != nil {
-			return err
-		}
-		urls = append(urls, url)
+	url, err := bucket.SaveToStorage(file, prefix, index)
+	if err != nil {
+		return err
 	}
 
 	for _, key := range keys {
@@ -135,12 +131,15 @@ func setInvitationValue(bucket s3.Bucket, invitation model.Invitation, prefix st
 		}
 
 		if value.Kind() == reflect.String {
-			value.Set(reflect.ValueOf(urls[0]))
+			value.Set(reflect.ValueOf(url))
 			break
 		}
 
 		if value.Kind() == reflect.Slice {
-			value.Set(reflect.ValueOf(urls))
+			value = value.Index(index)
+			if value.CanSet() {
+				value.Set(reflect.ValueOf(url))
+			}
 		}
 
 	}
